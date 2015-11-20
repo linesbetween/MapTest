@@ -4,7 +4,7 @@
  * create an empty database (in this example, database name is game) before run.
  * the map table will be created at run time.
  * the ScriptRunner.java and Table.java are used to read sql scripts. 
- ***issue: seems like can't handle loop or comments
+ ***issue: looks like it can't handle loop or comments
  *
  * What this does now: 
  * initilize layout and place map blocks.
@@ -34,6 +34,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import java.util.Random;
 import java.sql.*;
 import static javafx.application.Application.launch;
 import java.io.*;
@@ -52,6 +55,11 @@ public class MapTest extends Application {
   private Label turnLabel;// display who's turn is in current round
   private Label diceResult;//display result of dice rolling
   private Button rollDice;
+  
+  private int location1;
+  private int location2;
+  public static int diceNum;
+  private boolean turn;//indicate which player's turn
  
   @Override // Override the start method in the Application class
   public void start(Stage primaryStage) {
@@ -68,14 +76,21 @@ public class MapTest extends Application {
     borderPane.setBottom(getBottom());
     borderPane.setLeft(getLeft());
     borderPane.setCenter(getCenter());
+    borderPane.setStyle("-fx-background-color: #FFFFFF;");
   
-   // btShowGrade.setOnAction(e -> showGrade());
+    //btEnlarge.setOnAction(new EnlargeHandler());
+   //
     
     // Create a scene and place it in the stage
     Scene scene = new Scene(borderPane);
     primaryStage.setTitle("Game"); // Set the stage title
     primaryStage.setScene(scene); // Place the scene in the stage
     primaryStage.show(); // Display the stage   
+    
+    location1 = 0;
+    location2=0;
+    diceNum=0;
+    turn = false;
   }
   
   private HBox getTop(){
@@ -152,6 +167,12 @@ public class MapTest extends Application {
       pane.add(turnLabel, 0, 0, 2,1);
       pane.add(rollDice, 0, 1, 1,1);
       pane.add(diceResult, 1, 1, 1,1);
+    //  try{
+      rollDice.setOnAction(e -> roll());
+   //   }
+     // catch(SQLException e){e.printStackTrace();}
+    //  catch(ClassNotFoundException e){e.printStackTrace();}
+      
       return pane;
   }
   
@@ -185,70 +206,56 @@ public class MapTest extends Application {
    public static void main(String[] args) {
     launch(args);
   }
+   
+   private int roll() { 
+       //roll dice
+       diceNum=(int)(Math.random()*6+1);
+       diceResult.setText(Integer.toString(diceNum));
+       
+       int location;//current player's location
+       String  currentPlayerId;
+       if (turn=false){      
+       //update location & display on map
+            blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
+            location1=location1+diceNum;
+            blockArray[location1 %30].setStyle("-fx-background-color: #FFFF00;");
+            try {
+             Connection connection = DriverManager.getConnection
+        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
+             Statement statement = connection.createStatement();
+             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
+             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+            ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p1' where blockId='blo'+ Convert(Varchar,location1) ");
+            } catch(SQLException e){e.printStackTrace();}
+            //  catch(ClassNotFoundException e){e.printStackTrace();}
+       }     
+       else{
+            blockArray[location2%30].setStyle("-fx-background-color: #FFFFFF;");
+            location2=location2+diceNum;
+            blockArray[location2 %30].setStyle("-fx-background-color: #00FFFF;");
+            try {
+              Connection connection = DriverManager.getConnection
+        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
+             Statement statement = connection.createStatement();
+             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
+             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+             /*
+            ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");
+                     
+             ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");*/
+            } catch(SQLException e){e.printStackTrace();}
+    //  catch(ClassNotFoundException e){e.printStackTrace();}
+       }
+       turn = !turn; // switch turn.
+       return diceNum ; 
+       
+   }
+   
+   
 }
-  
-  class CustomPane extends StackPane {
-    public CustomPane(String title) {
-    getChildren().add(new Label(title));    
-    //setStyle("-fx-border-color: red");
-    setPadding(new Insets(11.5, 12.5, 13.5, 14.5));
-     }
-    
-  }
 
-  
- // Button btShowGrade = new Button("Show Grade");
-    //HBox hBox = new HBox(5);
-    //hBox.getChildren().addAll(new Label("SSN"), tfSSN, 
-     // new Label("Course ID"), tfCourseId, (btShowGrade));
-
-    //VBox vBox = new VBox(10);
-   // vBox.getChildren().addAll(hBox, lblStatus);
-    
-    //tfSSN.setPrefColumnCount(6);
-   // tfCourseId.setPrefColumnCount(6);
- 
-
- 
-  /*
-  private void showGrade() {
-    String ssn = tfSSN.getText();
-    String courseId = tfCourseId.getText();
-    try {
-      String queryString = "select firstName, mi, " +
-        "lastName, title, grade from Student, Enrollment, Course " +
-        "where Student.ssn = '" + ssn + "' and Enrollment.courseId "
-        + "= '" + courseId +
-        "' and Enrollment.courseId = Course.courseId " +
-        " and Enrollment.ssn = Student.ssn";
-
-      ResultSet rset = stmt.executeQuery(queryString);
-
-      if (rset.next()) {
-        String lastName = rset.getString(1);
-        String mi = rset.getString(2);
-        String firstName = rset.getString(3);
-        String title = rset.getString(4);
-        String grade = rset.getString(5);
-
-        // Display result in a label
-        lblStatus.setText(firstName + " " + mi +
-          " " + lastName + "'s grade on course " + title + " is " +
-          grade);
-      } else {
-        lblStatus.setText("Not found");
-      }
-    }
-    catch (SQLException ex) {
-      ex.printStackTrace();
-    }
-  }
-  
-  */
-
-  /**
-   * The main method is only needed for the IDE with limited
-   * JavaFX support. Not needed for running from the command line.
-   */
  
 
