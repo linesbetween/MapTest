@@ -3,7 +3,7 @@ use game;
 DROP table if exists Map;
 CREATE table Map(
 blockId VARCHAR(5) not null,
-landType INT(1),
+landType VARCHAR(5),
 buildingId VARCHAR(5),
 eventId VARCHAR(5),
 ownerId VARCHAR(2),

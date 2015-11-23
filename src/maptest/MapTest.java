@@ -50,23 +50,32 @@ public class MapTest extends Application {
   private TextField tfCourseId = new TextField();
   private Label lblStatus = new Label();
   */
-  final int blockNum=40;
+  final int blockNum=30;
   private GridPane[] blockArray; 
   private Label turnLabel;// display who's turn is in current round
   private Label diceResult;//display result of dice rolling
   private Button rollDice;
+  private Button stop_Save;
   
   private int location1;
   private int location2;
   public static int diceNum;
   private boolean turn;//indicate which player's turn
+  
+  //Array for map table data
+  //Each block as an object 
+  private Block[] blockData;
  
   @Override // Override the start method in the Application class
   public void start(Stage primaryStage) {
     // Initialize database connection and create a Statement object
     initializeDB();
    
-      //initialize variables
+    //initialize blockData array
+    
+ 
+    
+//initialize variables
      blockArray = new GridPane[blockNum];
       
     //Initialize user interface   
@@ -91,6 +100,17 @@ public class MapTest extends Application {
     location2=0;
     diceNum=0;
     turn = false;
+    
+    //initialize blockData array
+        //no reload from last map yet
+    blockData = new Block [blockNum];
+       for (int i=0;i<blockNum;i++){
+        blockData[i]= new Block();
+        String newId = "blo"+i;
+        blockData[i].setBlockId(newId);
+        String newType= "Land";
+        blockData[i].setLandType(newType);
+    }
   }
   
   private HBox getTop(){
@@ -156,6 +176,9 @@ public class MapTest extends Application {
   private BorderPane getCenter(){
       BorderPane pane = new BorderPane();
       pane.setCenter(getDice());
+      stop_Save =new Button("Stop & Save map to database");
+      pane.setBottom(stop_Save);
+      stop_Save.setOnAction(e -> stopNSave());
       return pane;
   }
   
@@ -175,6 +198,7 @@ public class MapTest extends Application {
       
       return pane;
   }
+
   
    private void initializeDB() {
     try {
@@ -214,7 +238,7 @@ public class MapTest extends Application {
        
        int location;//current player's location
        String  currentPlayerId;
-       if (turn=false){      
+       if (turn==false){      
        //update location & display on map
             blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
             location1=location1+diceNum;
@@ -225,10 +249,15 @@ public class MapTest extends Application {
              Statement statement = connection.createStatement();
              //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
              //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+             /** TEMP DELETE
             ResultSet resultSet = statement.executeQuery("update map set ownerId="
                     + " 'p1' where blockId='blo'+ Convert(Varchar,location1) ");
+                    * */
             } catch(SQLException e){e.printStackTrace();}
             //  catch(ClassNotFoundException e){e.printStackTrace();}
+            
+            //update ownerId in mapData array
+            blockData[location1].setOwnerId("P1");
        }     
        else{
             blockArray[location2%30].setStyle("-fx-background-color: #FFFFFF;");
@@ -247,12 +276,29 @@ public class MapTest extends Application {
              ResultSet resultSet = statement.executeQuery("update map set ownerId="
                     + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");*/
             } catch(SQLException e){e.printStackTrace();}
-    //  catch(ClassNotFoundException e){e.printStackTrace();}
+    //  catch(ClassNotFoundException e){e.printStackTrace();}           
+            
+             blockData[location2].setOwnerId("P2");
        }
        turn = !turn; // switch turn.
        return diceNum ; 
        
    }
+   
+   
+   private void stopNSave(){
+       
+       //display info in output
+       System.out.println("Current map data saved");
+       for (int i=0;i<blockNum;i++){
+           String blockId=blockData[i].getBlockId();
+           String landType=blockData[i].getLandType();
+           String ownerId=blockData[i].getOwnerId();
+           System.out.format("Block%d ID is %s , landType is %s , Owner ID is %s", i, blockId,landType,ownerId);
+           System.out.println();
+       }
+   }
+   
    
    
 }
