@@ -5,15 +5,18 @@
  * the map table will be created at run time.
  * the ScriptRunner.java and Table.java are used to read sql scripts. 
  ***issue: looks like it can't handle loop or comments
+
  *
  * What this does now: 
  * initilize layout and place map blocks.
  * initilize map table in database.
- * What needs to be done
  * dice randomly generates number generater) to select block (row) in map table.
  * put indicater (like flag or color change) on selected block.
+ * when player1 lands on a block, change block border to red. reset border color to black when leave.
+ ***ISSUE: setStyle method seems to override the former setStyle method calss.
+           thus changing border color will mess up with backgroud color 
  * assign block to the player who first steps on it. 
- * 
+ * stores current map into into array of blocks.
  */
 
 package maptest;
@@ -24,6 +27,8 @@ package maptest;
  */
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -51,12 +56,14 @@ public class MapTest extends Application {
   private Label lblStatus = new Label();
   */
   final int blockNum=30;
+  //For display
   private GridPane[] blockArray; 
   private Label turnLabel;// display who's turn is in current round
   private Label diceResult;//display result of dice rolling
   private Button rollDice;
   private Button stop_Save;
   
+  //For locate player
   private int location1;
   private int location2;
   public static int diceNum;
@@ -66,18 +73,15 @@ public class MapTest extends Application {
   //Each block as an object 
   private Block[] blockData;
  
+  /***************************************
+  /*Main method 
+  /****************************************/
   @Override // Override the start method in the Application class
   public void start(Stage primaryStage) {
     // Initialize database connection and create a Statement object
     initializeDB();
-   
-    //initialize blockData array
-    
- 
-    
-//initialize variables
-     blockArray = new GridPane[blockNum];
       
+    blockArray = new GridPane[blockNum]; 
     //Initialize user interface   
     BorderPane borderPane = new BorderPane();
     borderPane.setTop(getTop());
@@ -85,21 +89,20 @@ public class MapTest extends Application {
     borderPane.setBottom(getBottom());
     borderPane.setLeft(getLeft());
     borderPane.setCenter(getCenter());
-    borderPane.setStyle("-fx-background-color: #FFFFFF;");
-  
-    //btEnlarge.setOnAction(new EnlargeHandler());
-   //
-    
+    borderPane.setStyle("-fx-background-color: #FFFFFF;");    
     // Create a scene and place it in the stage
     Scene scene = new Scene(borderPane);
     primaryStage.setTitle("Game"); // Set the stage title
     primaryStage.setScene(scene); // Place the scene in the stage
     primaryStage.show(); // Display the stage   
     
+     //initialize variables
     location1 = 0;
     location2=0;
     diceNum=0;
-    turn = false;
+    turn = false;    
+   
+        
     
     //initialize blockData array
         //no reload from last map yet
@@ -108,10 +111,25 @@ public class MapTest extends Application {
         blockData[i]= new Block();
         String newId = "blo"+i;
         blockData[i].setBlockId(newId);
-        String newType= "Land";
+        String newType= "Default";
+        if ((i==5) || (i==10) || (i==15) || (i==20) ||(i==25)){
+            newType="Event";
+        }
+        else{
+            newType="Land";
+        }
+        
         blockData[i].setLandType(newType);
     }
   }
+  
+    public static void main(String[] args) {
+    launch(args);
+  }
+  
+  /***************************************
+  /*User Interface
+  /****************************************/  
   
   private HBox getTop(){
       HBox hBox = new HBox();
@@ -120,9 +138,13 @@ public class MapTest extends Application {
           blockArray[i].setPadding(new Insets(10, 10, 10, 10));
           blockArray[i].setPrefSize(100,100);
           blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0);
-          blockArray[i].add(new Label("Building ID:"), 0, 1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2);
+          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+          Rectangle playerIndicator = new Rectangle(0,0,20,20);
+          playerIndicator.setFill(null);
+          playerIndicator.setStroke(Color.BLACK);
+          blockArray[i].add(playerIndicator, 0, 3,1,1);
           hBox.getChildren().add(blockArray[i]);
       }
       return hBox;
@@ -135,9 +157,13 @@ public class MapTest extends Application {
           blockArray[i].setPadding(new Insets(10, 10, 10, 10));
           blockArray[i].setPrefSize(100,100);
           blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0);
-          blockArray[i].add(new Label("Building ID:"), 0, 1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2);
+          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0 ,2,1);
+          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+           Rectangle playerIndicator = new Rectangle(0,0,20,20);
+          playerIndicator.setFill(null);
+          playerIndicator.setStroke(Color.BLACK);
+          blockArray[i].add(playerIndicator, 0, 3,1,1);
           hBox.getChildren().add(blockArray[i]);
       }
       return hBox;
@@ -150,9 +176,13 @@ public class MapTest extends Application {
           blockArray[i].setPadding(new Insets(10, 10, 10, 10));
           blockArray[i].setPrefSize(100,100);
           blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0);
-          blockArray[i].add(new Label("Building ID:"), 0, 1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2);
+          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+           Rectangle playerIndicator = new Rectangle(0,0,20,20);
+          playerIndicator.setFill(null);
+          playerIndicator.setStroke(Color.BLACK);
+          blockArray[i].add(playerIndicator, 0, 3,1,1);
           vBox.getChildren().add(blockArray[i]);
       }
       return vBox;
@@ -165,9 +195,13 @@ public class MapTest extends Application {
           blockArray[i].setPadding(new Insets(10, 10, 10, 10));
           blockArray[i].setPrefSize(100,100);
           blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0);
-          blockArray[i].add(new Label("Building ID:"), 0, 1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2);
+          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+           Rectangle playerIndicator = new Rectangle(0,0,20,20);
+          playerIndicator.setFill(null);
+          playerIndicator.setStroke(Color.BLACK);
+          blockArray[i].add(playerIndicator, 0, 3,1,1);
           vBox.getChildren().add(blockArray[i]);
       }
       return vBox;
@@ -182,6 +216,7 @@ public class MapTest extends Application {
       return pane;
   }
   
+    
   private GridPane getDice(){
       GridPane pane= new GridPane();
       turnLabel = new Label("Player's turn");
@@ -199,6 +234,9 @@ public class MapTest extends Application {
       return pane;
   }
 
+  /***************************************
+  /*Database
+  /****************************************/
   
    private void initializeDB() {
     try {
@@ -227,9 +265,12 @@ public class MapTest extends Application {
     }
   }
   
-   public static void main(String[] args) {
-    launch(args);
-  }
+ 
+   
+  /***************************************
+  /*Event Handler
+  /*Most functions called in roll() 
+  /****************************************/
    
    private int roll() { 
        //roll dice
@@ -238,47 +279,41 @@ public class MapTest extends Application {
        
        int location;//current player's location
        String  currentPlayerId;
-       if (turn==false){      
-       //update location & display on map
-            blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
-            location1=location1+diceNum;
-            blockArray[location1 %30].setStyle("-fx-background-color: #FFFF00;");
-            try {
-             Connection connection = DriverManager.getConnection
-        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
-             Statement statement = connection.createStatement();
-             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
-             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
-             /** TEMP DELETE
-            ResultSet resultSet = statement.executeQuery("update map set ownerId="
-                    + " 'p1' where blockId='blo'+ Convert(Varchar,location1) ");
-                    * */
-            } catch(SQLException e){e.printStackTrace();}
-            //  catch(ClassNotFoundException e){e.printStackTrace();}
-            
+       if (turn==false){    //if current player is P1    
+           //reset border color and width before leaving current block
+              blockArray[location1%30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1"); 
+              //blockArray[location1%30].setStyle("-fx-border-width: 1");
+              //update location
+            location1=(location1+diceNum)%30;
+            //set curren block border color and width 
+             blockArray[location1].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
+              //blockArray[location1].setStyle("-fx-border-width: 8");
             //update ownerId in mapData array
-            blockData[location1].setOwnerId("P1");
-       }     
-       else{
-            blockArray[location2%30].setStyle("-fx-background-color: #FFFFFF;");
-            location2=location2+diceNum;
-            blockArray[location2 %30].setStyle("-fx-background-color: #00FFFF;");
-            try {
-              Connection connection = DriverManager.getConnection
-        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
-             Statement statement = connection.createStatement();
-             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
-             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
-             /*
-            ResultSet resultSet = statement.executeQuery("update map set ownerId="
-                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");
-                     
-             ResultSet resultSet = statement.executeQuery("update map set ownerId="
-                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");*/
-            } catch(SQLException e){e.printStackTrace();}
-    //  catch(ClassNotFoundException e){e.printStackTrace();}           
+            if ((location1!=5) && (location1!=10)&&(location1!=15)&&(location1!=20)&&(location1!=25)
+                    &&blockData[location1].getOwnerId()==null){ // if block has never been stepped on 
+                blockData[location1].setOwnerId("P1");
+                //update location & display on map
+                //blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
+                //blockArray[location1].setStyle("-fx-stroke: black");
+                blockArray[location1].setStyle("-fx-background-color: #FFFF00;");
             
-             blockData[location2].setOwnerId("P2");
+            }
+            else if ((location1!=5) && (location1!=10)&&(location1!=15)&&(location1!=20)&&(location1!=25)
+                    &&blockData[location1].getOwnerId()!=null) {//if block is owned by other players
+                //TODO
+            }
+       }     
+       else{ //if current players is P2
+                   
+            location2=(location2+diceNum)%30;
+            if ((location2!=5) && (location2!=10)&&(location2!=15)&&(location2!=20)&&(location2!=25)
+                    &&blockData[location2].getOwnerId()==null ){
+                blockData[location2].setOwnerId("P2");
+                //blockArray[location2%30].setStyle("-fx-background-color: #FFFFFF;");
+                blockArray[location2].setStyle("-fx-border-color: black");
+                blockArray[location2 ].setStyle("-fx-background-color: #00FFFF;");
+            
+            }
        }
        turn = !turn; // switch turn.
        return diceNum ; 
@@ -297,6 +332,39 @@ public class MapTest extends Application {
            System.out.format("Block%d ID is %s , landType is %s , Owner ID is %s", i, blockId,landType,ownerId);
            System.out.println();
        }
+   }
+   
+   
+   private void linkDatabase(){
+        /*
+            try {
+             Connection connection = DriverManager.getConnection
+        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
+             Statement statement = connection.createStatement();
+             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
+             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+             /** TEMP DELETE
+            ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p1' where blockId='blo'+ Convert(Varchar,location1) ");
+                    
+            } catch(SQLException e){e.printStackTrace();}
+          */
+       
+         /*
+            try {
+              Connection connection = DriverManager.getConnection
+        ("jdbc:mysql://localhost/game", "root", "bhcc"); 
+             Statement statement = connection.createStatement();
+             //String queryString = "insert into Student (firstName, mi, lastName) " + "values (?, ?, ?)";
+             //PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+             /*
+            ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");
+                     
+             ResultSet resultSet = statement.executeQuery("update map set ownerId="
+                    + " 'p2' where blockId='blo'+ Convert(Varchar,location2) ");
+            } catch(SQLException e){e.printStackTrace();}
+                    */
    }
    
    
