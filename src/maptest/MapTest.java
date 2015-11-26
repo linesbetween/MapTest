@@ -50,12 +50,8 @@ import java.io.*;
 public class MapTest extends Application {
   // Statement for executing queries
   private Statement stmt;
-  /*
-  private TextField tfSSN = new TextField();
-  private TextField tfCourseId = new TextField();
-  private Label lblStatus = new Label();
-  */
-  final int blockNum=30;
+  
+  
   //For display
   private GridPane[] blockArray; 
   private Label turnLabel;// display who's turn is in current round
@@ -71,7 +67,13 @@ public class MapTest extends Application {
   
   //Array for map table data
   //Each block as an object 
+  final int blockNum=30;
   private Block[] blockData;
+  
+  //Create list of players to hold all player objects
+  private TempPlayer[] playerList; 
+ 
+  
  
   /***************************************
   /*Main method 
@@ -101,7 +103,10 @@ public class MapTest extends Application {
     location2=0;
     diceNum=0;
     turn = false;    
-   
+    
+     //create player objects with player id "P1" and "P2"
+  playerList[0] = new TempPlayer("P1");
+  playerList[1] = new TempPlayer("P2");
         
     
     //initialize blockData array
@@ -112,8 +117,9 @@ public class MapTest extends Application {
         String newId = "blo"+i;
         blockData[i].setBlockId(newId);
         String newType= "Default";
-        if ((i==5) || (i==10) || (i==15) || (i==20) ||(i==25)){
+        if ((i==1) || (i==10) || (i==15) || (i==20) ||(i==25)){
             newType="Event";
+            blockData[i].setEventId("");
         }
         else{
             newType="Land";
@@ -122,6 +128,8 @@ public class MapTest extends Application {
         blockData[i].setLandType(newType);
     }
   }
+  
+ 
   
     public static void main(String[] args) {
     launch(args);
@@ -270,7 +278,54 @@ public class MapTest extends Application {
   /***************************************
   /*Event Handler
   /*Most functions called in roll() 
+  /*Improved version of roll() 
   /****************************************/
+   
+   private void roll_improved(){
+        //roll dice
+       diceNum=(int)(Math.random()*6+1);
+       diceResult.setText(Integer.toString(diceNum));
+       int playerIndex= 0 ;
+       
+       int location;//location of current player
+       
+       //check whose turn 
+       if (turn==false){
+           playerIndex = 0;
+           if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ // check if player has finished one round trip
+                  //TODO (get benefits etc.)
+              }
+           //reset border color and width before leaving current block
+           blockArray[playerList[playerIndex].getLocation() %30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1");
+           //update location with dice number
+           playerList[playerIndex].setLocation((playerList[playerIndex].getLocation()+diceNum)%30);
+           //set curren block border color and width 
+             blockArray[playerList[playerIndex].getLocation()].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
+       }
+       else{
+           playerIndex =1;
+       }      
+       
+       location = playerList[playerIndex].getLocation(); //assign location of current player
+        if ((location!=5) && (location!=10)&&(location!=15)&&(location!=20)&&(location!=25)
+                    &&blockData[location].getOwnerId()==null){ // if block has never been stepped on 
+                blockData[location].setOwnerId("P1");
+                //update location & display on map
+                //blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
+                //blockArray[location1].setStyle("-fx-stroke: black");
+                blockArray[location].setStyle("-fx-background-color: #FFFF00;");
+            
+            }
+            else if ((location!=5) && (location!=10)&&(location!=15)&&(location!=20)&&(location!=25)
+                    &&blockData[location].getOwnerId()!=null) {//if block is owned by other players
+                //TODO add event 
+            }
+       
+       
+       turn = !turn; // switch turn 
+       
+       
+   }
    
    private int roll() { 
        //roll dice
@@ -284,6 +339,9 @@ public class MapTest extends Application {
               blockArray[location1%30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1"); 
               //blockArray[location1%30].setStyle("-fx-border-width: 1");
               //update location
+              if((location1+diceNum)%30<location1){ // check if player has finished one round trip
+                  //TODO (get benefits etc.)
+              }
             location1=(location1+diceNum)%30;
             //set curren block border color and width 
              blockArray[location1].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
@@ -300,7 +358,7 @@ public class MapTest extends Application {
             }
             else if ((location1!=5) && (location1!=10)&&(location1!=15)&&(location1!=20)&&(location1!=25)
                     &&blockData[location1].getOwnerId()!=null) {//if block is owned by other players
-                //TODO
+                //TODO add event 
             }
        }     
        else{ //if current players is P2
