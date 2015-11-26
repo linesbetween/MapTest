@@ -1,3 +1,11 @@
+/*NOTE2:
+* RUNTIME ERROR: map exits right after launching.
+* display issue still under processing
+* good news: structure of dicision is kinda clear now. ctrl+F "TODO" to see
+    where to add player/building/event code
+*/
+
+
 /*
  * NOTE: 
  * copy IniMap.sql in to project root folder since it's the current running directory.
@@ -53,7 +61,7 @@ public class MapTest extends Application {
   
   
   //For display
-  private GridPane[] blockArray; 
+  private GridPane[] blockPaneArray; 
   private Label turnLabel;// display who's turn is in current round
   private Label diceResult;//display result of dice rolling
   private Button rollDice;
@@ -71,6 +79,7 @@ public class MapTest extends Application {
   private Block[] blockData;
   
   //Create list of players to hold all player objects
+  //Will detect current player by array index.
   private TempPlayer[] playerList; 
  
   
@@ -83,7 +92,7 @@ public class MapTest extends Application {
     // Initialize database connection and create a Statement object
     initializeDB();
       
-    blockArray = new GridPane[blockNum]; 
+    blockPaneArray = new GridPane[blockNum]; 
     //Initialize user interface   
     BorderPane borderPane = new BorderPane();
     borderPane.setTop(getTop());
@@ -117,6 +126,7 @@ public class MapTest extends Application {
         String newId = "blo"+i;
         blockData[i].setBlockId(newId);
         String newType= "Default";
+        //TODO set which block is event type
         if ((i==1) || (i==10) || (i==15) || (i==20) ||(i==25)){
             newType="Event";
             blockData[i].setEventId("");
@@ -142,18 +152,18 @@ public class MapTest extends Application {
   private HBox getTop(){
       HBox hBox = new HBox();
       for (int i=0;i<10;i++){
-          blockArray[i] = new GridPane();
-          blockArray[i].setPadding(new Insets(10, 10, 10, 10));
-          blockArray[i].setPrefSize(100,100);
-          blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
-          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+          blockPaneArray[i] = new GridPane();
+          blockPaneArray[i].setPadding(new Insets(10, 10, 10, 10));
+          blockPaneArray[i].setPrefSize(100,100);
+          blockPaneArray[i].setStyle("-fx-border-color: black");
+          blockPaneArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockPaneArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockPaneArray[i].add(new Label("Land Type:"), 0, 2,2,1);
           Rectangle playerIndicator = new Rectangle(0,0,20,20);
           playerIndicator.setFill(null);
           playerIndicator.setStroke(Color.BLACK);
-          blockArray[i].add(playerIndicator, 0, 3,1,1);
-          hBox.getChildren().add(blockArray[i]);
+          blockPaneArray[i].add(playerIndicator, 0, 3,1,1);
+          hBox.getChildren().add(blockPaneArray[i]);
       }
       return hBox;
   }
@@ -161,18 +171,18 @@ public class MapTest extends Application {
    private HBox getBottom(){
       HBox hBox = new HBox();
       for (int i=24;i>14;i--){
-          blockArray[i] = new GridPane();
-          blockArray[i].setPadding(new Insets(10, 10, 10, 10));
-          blockArray[i].setPrefSize(100,100);
-          blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0 ,2,1);
-          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+          blockPaneArray[i] = new GridPane();
+          blockPaneArray[i].setPadding(new Insets(10, 10, 10, 10));
+          blockPaneArray[i].setPrefSize(100,100);
+          blockPaneArray[i].setStyle("-fx-border-color: black");
+          blockPaneArray[i].add(new Label("Block ID"+ (i+1)), 0, 0 ,2,1);
+          blockPaneArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockPaneArray[i].add(new Label("Land Type:"), 0, 2,2,1);
            Rectangle playerIndicator = new Rectangle(0,0,20,20);
           playerIndicator.setFill(null);
           playerIndicator.setStroke(Color.BLACK);
-          blockArray[i].add(playerIndicator, 0, 3,1,1);
-          hBox.getChildren().add(blockArray[i]);
+          blockPaneArray[i].add(playerIndicator, 0, 3,1,1);
+          hBox.getChildren().add(blockPaneArray[i]);
       }
       return hBox;
   }
@@ -180,18 +190,18 @@ public class MapTest extends Application {
   private VBox getRight(){
       VBox vBox = new VBox();
       for (int i=10;i<15;i++){
-          blockArray[i] = new GridPane();
-          blockArray[i].setPadding(new Insets(10, 10, 10, 10));
-          blockArray[i].setPrefSize(100,100);
-          blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
-          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+          blockPaneArray[i] = new GridPane();
+          blockPaneArray[i].setPadding(new Insets(10, 10, 10, 10));
+          blockPaneArray[i].setPrefSize(100,100);
+          blockPaneArray[i].setStyle("-fx-border-color: black");
+          blockPaneArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockPaneArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockPaneArray[i].add(new Label("Land Type:"), 0, 2,2,1);
            Rectangle playerIndicator = new Rectangle(0,0,20,20);
           playerIndicator.setFill(null);
           playerIndicator.setStroke(Color.BLACK);
-          blockArray[i].add(playerIndicator, 0, 3,1,1);
-          vBox.getChildren().add(blockArray[i]);
+          blockPaneArray[i].add(playerIndicator, 0, 3,1,1);
+          vBox.getChildren().add(blockPaneArray[i]);
       }
       return vBox;
   }
@@ -199,18 +209,18 @@ public class MapTest extends Application {
   private VBox getLeft(){
       VBox vBox = new VBox();
       for (int i=29;i>24;i--){
-          blockArray[i] = new GridPane();
-          blockArray[i].setPadding(new Insets(10, 10, 10, 10));
-          blockArray[i].setPrefSize(100,100);
-          blockArray[i].setStyle("-fx-border-color: black");
-          blockArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
-          blockArray[i].add(new Label("Building ID:"), 0, 1,2,1);
-          blockArray[i].add(new Label("Land Type:"), 0, 2,2,1);
+          blockPaneArray[i] = new GridPane();
+          blockPaneArray[i].setPadding(new Insets(10, 10, 10, 10));
+          blockPaneArray[i].setPrefSize(100,100);
+          blockPaneArray[i].setStyle("-fx-border-color: black");
+          blockPaneArray[i].add(new Label("Block ID"+ (i+1)), 0, 0,2,1);
+          blockPaneArray[i].add(new Label("Building ID:"), 0, 1,2,1);
+          blockPaneArray[i].add(new Label("Land Type:"), 0, 2,2,1);
            Rectangle playerIndicator = new Rectangle(0,0,20,20);
           playerIndicator.setFill(null);
           playerIndicator.setStroke(Color.BLACK);
-          blockArray[i].add(playerIndicator, 0, 3,1,1);
-          vBox.getChildren().add(blockArray[i]);
+          blockPaneArray[i].add(playerIndicator, 0, 3,1,1);
+          vBox.getChildren().add(blockPaneArray[i]);
       }
       return vBox;
   }
@@ -234,7 +244,7 @@ public class MapTest extends Application {
       pane.add(rollDice, 0, 1, 1,1);
       pane.add(diceResult, 1, 1, 1,1);
     //  try{
-      rollDice.setOnAction(e -> roll());
+      rollDice.setOnAction(e -> roll_improved());
    //   }
      // catch(SQLException e){e.printStackTrace();}
     //  catch(ClassNotFoundException e){e.printStackTrace();}
@@ -277,8 +287,9 @@ public class MapTest extends Application {
    
   /***************************************
   /*Event Handler
-  /*Most functions called in roll() 
   /*Improved version of roll() 
+  /*Most functions called in roll_improved() 
+  /* 
   /****************************************/
    
    private void roll_improved(){
@@ -287,37 +298,83 @@ public class MapTest extends Application {
        diceResult.setText(Integer.toString(diceNum));
        int playerIndex= 0 ;
        
+       //variables hold data of curren player, shared by all players
        int location;//location of current player
+       String playerId;
+       String otherPlayerId;
        
-       //check whose turn 
+       //check whose turn. 
+       //currently using boolean toggle for 2 players. will use int for more players.
+       //this if-else structure contains duplicate codes for both players because:
+       // checking if player has made round trip involves both old and new location
+       // display (setStyle) is not working properly, further test needed.
        if (turn==false){
+           //set current player as P1 by using array index of playerList
            playerIndex = 0;
-           if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ // check if player has finished one round trip
+             // check if player has made one round trip
+           if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ 
                   //TODO (get benefits etc.)
-              }
-           //reset border color and width before leaving current block
-           blockArray[playerList[playerIndex].getLocation() %30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1");
+              }        
+           
+           //reset border color and width before leaving current block (a.k.a. adding dice number)
+           blockPaneArray[playerList[playerIndex].getLocation() %30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1");
            //update location with dice number
            playerList[playerIndex].setLocation((playerList[playerIndex].getLocation()+diceNum)%30);
            //set curren block border color and width 
-             blockArray[playerList[playerIndex].getLocation()].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
+             blockPaneArray[playerList[playerIndex].getLocation()].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
        }
        else{
            playerIndex =1;
-       }      
+           
+           // check if player has made one round trip
+           if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ 
+                  //TODO (get benefits etc.)
+              }      
+           
+           blockPaneArray[playerList[playerIndex].getLocation() %30].setStyle("-fx-border-color: black");
+           playerList[playerIndex].setLocation((playerList[playerIndex].getLocation()+diceNum)%30);
+           blockPaneArray[playerList[playerIndex].getLocation()].setStyle("-fx-background-color: #00FFFF;");
+           
+       }  
        
-       location = playerList[playerIndex].getLocation(); //assign location of current player
-        if ((location!=5) && (location!=10)&&(location!=15)&&(location!=20)&&(location!=25)
-                    &&blockData[location].getOwnerId()==null){ // if block has never been stepped on 
-                blockData[location].setOwnerId("P1");
-                //update location & display on map
-                //blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
-                //blockArray[location1].setStyle("-fx-stroke: black");
-                blockArray[location].setStyle("-fx-background-color: #FFFF00;");
+       
+       //assign current player's value to shared variables
+       location = playerList[playerIndex].getLocation(); 
+       playerId= playerList[playerIndex].getPlayerId();
+       if (playerIndex==1)
+           otherPlayerId=playerList[0].getPlayerId();
+       else 
+           otherPlayerId=playerList[1].getPlayerId();
+       
+       //shared functions
+       
+       
+        if (blockData[location].getLandType()!="Event"){ // if block type is land 
+            if(blockData[location].getLandType()!=playerId){ // if land is NOT owned by current player
+                if(blockData[location].getLandType()!=otherPlayerId){// if land is NOT owned by the other player either
+                    //set land owner as current player
+                    blockData[location].setOwnerId(playerId);
+                    //update location & display on map
+                    //blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
+                    //blockArray[location1].setStyle("-fx-stroke: black");
+                    //set background color for owner
+                    blockPaneArray[location].setStyle("-fx-background-color: #FFFF00;");
+                }
+                else{// if land is owned by the other player.
+                    //TODO any building on it?(this decision is missing from the flow )
+                    //TODO pay or start war?
+                    //TODO pay
+                    //TODO war
+                }
+            }
+            else{// if land is owned  by current player
+                //TODO any building on it?
+                //TODO ...
+            }
+            
             
             }
-            else if ((location!=5) && (location!=10)&&(location!=15)&&(location!=20)&&(location!=25)
-                    &&blockData[location].getOwnerId()!=null) {//if block is owned by other players
+            else  {//if block type is event
                 //TODO add event 
             }
        
@@ -336,7 +393,7 @@ public class MapTest extends Application {
        String  currentPlayerId;
        if (turn==false){    //if current player is P1    
            //reset border color and width before leaving current block
-              blockArray[location1%30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1"); 
+              blockPaneArray[location1%30].setStyle("-fx-border-color: #000000 ;-fx-border-width: 1"); 
               //blockArray[location1%30].setStyle("-fx-border-width: 1");
               //update location
               if((location1+diceNum)%30<location1){ // check if player has finished one round trip
@@ -344,7 +401,7 @@ public class MapTest extends Application {
               }
             location1=(location1+diceNum)%30;
             //set curren block border color and width 
-             blockArray[location1].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
+             blockPaneArray[location1].setStyle("-fx-border-color: #ff0000; -fx-border-width: 8");  
               //blockArray[location1].setStyle("-fx-border-width: 8");
             //update ownerId in mapData array
             if ((location1!=5) && (location1!=10)&&(location1!=15)&&(location1!=20)&&(location1!=25)
@@ -353,7 +410,7 @@ public class MapTest extends Application {
                 //update location & display on map
                 //blockArray[location1%30].setStyle("-fx-background-color: #FFFFFF;");
                 //blockArray[location1].setStyle("-fx-stroke: black");
-                blockArray[location1].setStyle("-fx-background-color: #FFFF00;");
+                blockPaneArray[location1].setStyle("-fx-background-color: #FFFF00;");
             
             }
             else if ((location1!=5) && (location1!=10)&&(location1!=15)&&(location1!=20)&&(location1!=25)
@@ -368,8 +425,8 @@ public class MapTest extends Application {
                     &&blockData[location2].getOwnerId()==null ){
                 blockData[location2].setOwnerId("P2");
                 //blockArray[location2%30].setStyle("-fx-background-color: #FFFFFF;");
-                blockArray[location2].setStyle("-fx-border-color: black");
-                blockArray[location2 ].setStyle("-fx-background-color: #00FFFF;");
+                blockPaneArray[location2].setStyle("-fx-border-color: black");
+                blockPaneArray[location2 ].setStyle("-fx-background-color: #00FFFF;");
             
             }
        }

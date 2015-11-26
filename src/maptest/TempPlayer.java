@@ -36,6 +36,10 @@ public class TempPlayer {
         this.location=loc;
     }
     
+    String getPlayerId(){
+        return playerId;
+    }
+    
     void addLandId(String newLand){
         landIdList.add(newLand);
     }
