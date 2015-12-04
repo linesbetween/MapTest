@@ -91,7 +91,6 @@ public class MapTest extends Application {
   public void start(Stage primaryStage) {
     // Initialize database connection and create a Statement object
     initializeDB();
-    System.out.println("start stage, before block array");
     blockPaneArray = new GridPane[blockNum]; 
     //Initialize user interface   
     BorderPane borderPane = new BorderPane();
@@ -106,7 +105,6 @@ public class MapTest extends Application {
     primaryStage.setTitle("Game"); // Set the stage title
     primaryStage.setScene(scene); // Place the scene in the stage
     primaryStage.show(); // Display the stage   
-    System.out.println("primaryStage.show()");
      //initialize variables
     location1 = 0;
     location2=0;
