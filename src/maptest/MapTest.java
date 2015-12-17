@@ -53,6 +53,7 @@ import java.util.Random;
 import java.sql.*;
 import static javafx.application.Application.launch;
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class MapTest extends Application {
@@ -81,6 +82,7 @@ public class MapTest extends Application {
   //Create list of players to hold all player objects
   //Will detect current player by array index.
   private TempPlayer[] playerList; 
+  private ArrayList<TempBuilding> buildingList;
  
   
  
@@ -115,6 +117,9 @@ public class MapTest extends Application {
     playerList = new TempPlayer [2];
   playerList[0] = new TempPlayer("P1");
   playerList[1] = new TempPlayer("P2");
+  
+  //create empty building list
+  buildingList = new  ArrayList<TempBuilding>();
         
     
     //initialize blockData array
@@ -296,6 +301,7 @@ public class MapTest extends Application {
        diceNum=(int)(Math.random()*6+1);
        diceResult.setText(Integer.toString(diceNum));
        int playerIndex= 0 ;
+       int opponentIndex=1;
        
        //variables hold data of curren player, shared by all players
        int location;//location of current player
@@ -310,6 +316,7 @@ public class MapTest extends Application {
        if (turn==false){
            //set current player as P1 by using array index of playerList
            playerIndex = 0;
+           opponentIndex = 1;
              // check if player has made one round trip
            if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ 
                   //TODO (get benefits etc.)
@@ -324,6 +331,7 @@ public class MapTest extends Application {
        }
        else{
            playerIndex =1;
+           opponentIndex = 0;
            
            // check if player has made one round trip
            if((playerList[playerIndex].getLocation()+diceNum)%30<playerList[playerIndex].getLocation()){ 
@@ -360,14 +368,32 @@ public class MapTest extends Application {
                     blockPaneArray[location].setStyle("-fx-background-color: #FFFF00;");
                 }
                 else{// if land is owned by the other player.
-                    //TODO any building on it?(this decision is missing from the flow )
+                     //TODO any building on it?(this decision is missing from the flow )
+                    if (blockData[location].getBuildingId() == 0){// NO building on it,  buildingId starts from 1
+                    //nothing happens.
+                    }
+                    else {//Opponent's builing on it
+                        
                     //TODO pay or start war?
-                    //TODO pay
+                    //TODO pay                       
+                       TempBuilding currentBuilding= searchBuildingList(buildingList, location);
+                       int amount = currentBuilding.getChargePrice();
+                       playerList[playerIndex].payGold(amount); 
                     //TODO war
+                    }
                 }
             }
             else{// if land is owned  by current player
                 //TODO any building on it?
+                 if (blockData[location].getBuildingId() == 0){// NO building on it
+                    //build a default building .
+                     TempBuilding newBuilding = new TempBuilding(buildingList.size()+1, location); //
+                     buildingList.add(newBuilding);
+                    }
+                 else{ // upgrade current building
+                     playerList[playerIndex].payGold(searchBuildingList(buildingList, location).getUpgradePrice());
+                     searchBuildingList(buildingList, location).levelUp();
+                 }
                 //TODO ...
             }
             
@@ -381,6 +407,17 @@ public class MapTest extends Application {
        turn = !turn; // switch turn 
        
        
+   }
+   
+   //search through buildingList for the builing on this location/ or with this buildingId
+   TempBuilding searchBuildingList(ArrayList<TempBuilding> buildingList, int location){
+       for (TempBuilding b : buildingList){
+           if (b.getLocation() == location){
+               return b;
+           }
+       }
+       TempBuilding defaultBuilding = new TempBuilding();
+     return defaultBuilding; 
    }
    
    private int roll() { 

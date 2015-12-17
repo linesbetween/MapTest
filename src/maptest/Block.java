@@ -13,7 +13,7 @@ package maptest;
 public class Block {
     private String blockId;
     private String landType;
-    private String buildingId;
+    private int buildingId;
     private String eventId;
     private String ownerId;
     private String visitorId;
@@ -34,7 +34,7 @@ public class Block {
         return landType;
     }
      
-    public  String getBuildingId(){
+    public  int getBuildingId(){
         return buildingId;
     }
       
@@ -60,7 +60,7 @@ public class Block {
         this.eventId=eventId;
     }
     
-    public void setBuidlingId (String buildingId){
+    public void setBuidlingId (int buildingId){
         this.buildingId=buildingId;
     }
     

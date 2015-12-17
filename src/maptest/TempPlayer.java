@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class TempPlayer {
     private String playerId;
     private int location;
+    private int gold;
     private ArrayList<String> landIdList;
     
     TempPlayer(){
@@ -46,5 +47,21 @@ public class TempPlayer {
     
     ArrayList<String> getLandIdList(){
         return landIdList;
+    }
+    
+     int getGold(){
+        return gold;
+    }
+    
+    void setGold(int gold){
+        this.gold=gold;
+    }
+    
+    void addGold(int amount){
+        gold +=amount;
+    }
+    
+    void payGold(int amount){
+        gold -=amount;
     }
 }
